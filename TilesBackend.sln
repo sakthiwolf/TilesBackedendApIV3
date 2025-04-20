@@ -1,0 +1,41 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.12.35707.178
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TilesBackendApI", "TilesBackend\TilesBackendApI.csproj", "{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E29E45FB-7871-458D-8A7D-D307944B1781}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tiles.Core", "Tiles.Core\Tiles.Core.csproj", "{72DF4283-45F1-4F37-BB90-13FB4C313635}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tiles.Infrastructure", "Tiles.Infrastructure\Tiles.Infrastructure.csproj", "{7FAE4FDA-12D6-44E4-9539-096B663A8EC2}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{72DF4283-45F1-4F37-BB90-13FB4C313635}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{72DF4283-45F1-4F37-BB90-13FB4C313635}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{72DF4283-45F1-4F37-BB90-13FB4C313635}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{72DF4283-45F1-4F37-BB90-13FB4C313635}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7FAE4FDA-12D6-44E4-9539-096B663A8EC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7FAE4FDA-12D6-44E4-9539-096B663A8EC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7FAE4FDA-12D6-44E4-9539-096B663A8EC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7FAE4FDA-12D6-44E4-9539-096B663A8EC2}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4} = {E29E45FB-7871-458D-8A7D-D307944B1781}
+		{72DF4283-45F1-4F37-BB90-13FB4C313635} = {E29E45FB-7871-458D-8A7D-D307944B1781}
+		{7FAE4FDA-12D6-44E4-9539-096B663A8EC2} = {E29E45FB-7871-458D-8A7D-D307944B1781}
+	EndGlobalSection
+EndGlobal
