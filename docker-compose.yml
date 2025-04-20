@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "5000:80"
+    depends_on:
+      - db
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Server=db;Database=TilesDB;User=sa;Password=Your_password123;
+      - EmailSettings__Email=sakthiwolf1999@gmail.com
+      - EmailSettings__Password=umpyinjhxoeegvik
+      - EmailSettings__SmtpServer=smtp.gmail.com
+      - EmailSettings__Port=587
+
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "Your_password123"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"

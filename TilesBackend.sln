@@ -6,6 +6,9 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TilesBackendApI", "TilesBackend\TilesBackendApI.csproj", "{DE8844C2-4FA7-4B45-8B4D-7D70DE739CD4}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{E29E45FB-7871-458D-8A7D-D307944B1781}"
+	ProjectSection(SolutionItems) = preProject
+		docker-compose.yml = docker-compose.yml
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tiles.Core", "Tiles.Core\Tiles.Core.csproj", "{72DF4283-45F1-4F37-BB90-13FB4C313635}"
 EndProject
