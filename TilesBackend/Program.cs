@@ -2,19 +2,22 @@
 using Serilog;
 using Tiles.Core.ServiceContracts;
 using Tiles.Core.Services;
-using Tiles.Core.Domain.RepositroyContracts;
-using Tiles.Infrastructure.Repositories;
-using Tiles.Infrastructure.data;
-using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces; // Add for IUserService
 
+using Tiles.Infrastructure.Repositories;
+
+using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
+using Tiles.Core.Domain.RepositroyContracts;
+
+using Tiles.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
+
 // Enable CORS to allow requests from your React app
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:3000") // React app URL
+        policy.WithOrigins("http://localhost:5173") // React app URL
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -30,9 +33,9 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog(); // Use Serilog as the logging provider
 
-// Database context
+// Database context (PostgreSQL connection string)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("PostgresConnection")));
 
 // Add services to the container
 builder.Services.AddControllers();

@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Tiles.Core.Domain.Entites;
+using Tiles.Core.Domain.Entities;
 
-namespace Tiles.Infrastructure.data
+namespace Tiles.Infrastructure.Data
 {
-    public class AppDbContext:DbContext
+    public class AppDbContext : DbContext
     {
         public AppDbContext(DbContextOptions options) : base(options) { }
 
         public DbSet<Product> Products => Set<Product>();
-        public DbSet<User> Users { get; set; }
+        public DbSet<User> Users => Set<User>();
 
+        // Configure the model (e.g., setting precision for the Price property)
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Product>()
@@ -30,20 +27,18 @@ namespace Tiles.Infrastructure.data
 
             // Example User seed data
             modelBuilder.Entity<User>().HasData(
-        new User
-        {
-            Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            SerialNumber = 1,
-            Name = "Admin",
-            Email = "admin@example.com",
-            Phone = "1234567890",
-            Designation = "Administrator",
-            IsActive = true,
-            PasswordHash = "$2a$11$yR3e3tvATjy4kQcP9Nlh.eFq3CWcXbgEnDghIxKaD2ZOHMGKhjE9K" // <- hashed "Admin@123"
+                new User
+                {
+                    Id = Guid.Parse("11111111-1111-1111-1111-111111111111"),
+                    SerialNumber = 1,
+                    Name = "Admin",
+                    Email = "admin@example.com",
+                    Phone = "1234567890",
+                    Designation = "Administrator",
+                    IsActive = true,
+                    PasswordHash = "$2a$11$yR3e3tvATjy4kQcP9Nlh.eFq3CWcXbgEnDghIxKaD2ZOHMGKhjE9K" // <- hashed "Admin@123"
+                }
+            );
         }
-    );
-
-        }
-
     }
 }

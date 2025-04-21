@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tiles.Core.Domain.Entites;
+using Tiles.Core.Domain.Entities;
 using Tiles.Core.Domain.RepositroyContracts;
-using Tiles.Infrastructure.data;
+using Tiles.Infrastructure.Data;
+
 
 namespace Tiles.Infrastructure.Repositories
 {
@@ -9,9 +11,11 @@ namespace Tiles.Infrastructure.Repositories
     {
         private readonly AppDbContext _context;
 
-        public UserRepository(AppDbContext context) => _context = context;
+        public UserRepository(AppDbContext context)
+        {
+            _context = context;
+        }
 
-        // Use only GetByEmailAsync method
         public async Task<User?> GetByEmailAsync(string email) =>
             await _context.Users.FirstOrDefaultAsync(u => u.Email == email);
 
@@ -20,14 +24,19 @@ namespace Tiles.Infrastructure.Repositories
 
         public async Task<List<User>> GetUsersAsync(string search, int pageNo, int rowsPerPage) =>
             await _context.Users
-                .Where(u => u.Name.Contains(search) || u.Email.Contains(search) || u.Phone.Contains(search))
+                .Where(u =>
+                    u.Name.Contains(search) ||
+                    u.Email.Contains(search) ||
+                    u.Phone.Contains(search))
                 .Skip((pageNo - 1) * rowsPerPage)
                 .Take(rowsPerPage)
                 .ToListAsync();
 
         public async Task<int> GetTotalCountAsync(string search) =>
-            await _context.Users
-                .CountAsync(u => u.Name.Contains(search) || u.Email.Contains(search) || u.Phone.Contains(search));
+            await _context.Users.CountAsync(u =>
+                u.Name.Contains(search) ||
+                u.Email.Contains(search) ||
+                u.Phone.Contains(search));
 
         public async Task<int> GetNextSerialNumberAsync()
         {
@@ -37,12 +46,14 @@ namespace Tiles.Infrastructure.Repositories
 
         public async Task AddAsync(User user)
         {
+            user.OtpExpiry = DateTime.UtcNow.AddMinutes(5); // Always use UTC
             await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
         }
 
         public async Task UpdateAsync(User user)
         {
+            user.OtpExpiry = user.OtpExpiry?.ToUniversalTime(); // Convert to UTC if not already
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
         }

@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Tiles.Core.Domain.Entites;
 using Tiles.Core.Domain.RepositroyContracts;
-using Tiles.Infrastructure.data;
+using Tiles.Infrastructure.Data;
 
 namespace Tiles.Infrastructure.Repositories
 {
