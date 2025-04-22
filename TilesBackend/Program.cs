@@ -1,15 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Tiles.Core.ServiceContracts;
 using Tiles.Core.Services;
-
 using Tiles.Infrastructure.Repositories;
-
 using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Domain.RepositroyContracts;
-
 using Tiles.Infrastructure.Data;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -53,12 +49,15 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-app.UseSwagger(); // Serve Swagger JSON at /swagger.json
+// Serve static files like Swagger UI assets
+app.UseStaticFiles();
+
+// Swagger configuration
+app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger.json", "Tiles API"); // Correct endpoint path for Swagger JSON
-    c.RoutePrefix = string.Empty; // Serve Swagger UI at the root
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API v1"); // Correct Swagger endpoint
+    c.RoutePrefix = string.Empty; // This serves Swagger UI at the root
 });
 
 // Enable CORS before controllers
@@ -67,8 +66,6 @@ app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
-// Map controllers
 app.MapControllers();
 
 app.Run();
-
