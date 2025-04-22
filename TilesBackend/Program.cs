@@ -14,13 +14,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // React app URL
+      policy.WithOrigins("http://localhost:5173") // React app URL
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-// Configure Serilog
+// Configure Serilog for logging
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .WriteTo.Console()
@@ -37,7 +37,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "TilesBackendApi",
+        Version = "1.0",
+        Description = "Tiles backend API"
+    });
+    // Optional: If you have an XML documentation file
+    // c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "TilesApi.xml"));
+});
 
 // Dependency Injection for Product
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -49,23 +59,22 @@ builder.Services.AddScoped<IUserService, UserService>();
 
 var app = builder.Build();
 
-// Serve static files like Swagger UI assets
-app.UseStaticFiles();
+// Configure the HTTP request pipeline
 
-// Swagger configuration
+// Enable CORS before Swagger UI
+app.UseCors("AllowReactApp");
+
+// Enable Swagger
 app.UseSwagger();
+
+// Enable Swagger UI at the root (this will open Swagger UI when visiting /swagger)
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API v1"); // Correct Swagger endpoint
-    c.RoutePrefix = string.Empty; // This serves Swagger UI at the root
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TilesBackendApi v1");
+    c.RoutePrefix = string.Empty; // Serve Swagger UI at the root
 });
-
-// Enable CORS before controllers
-app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
