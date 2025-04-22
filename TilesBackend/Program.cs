@@ -2,9 +2,12 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Tiles.Core.ServiceContracts;
 using Tiles.Core.Services;
+
 using Tiles.Infrastructure.Repositories;
+
 using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Domain.RepositroyContracts;
+
 using Tiles.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,13 +17,13 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-      policy.WithOrigins("http://localhost:5173") // React app URL
+        policy.WithOrigins("http://localhost:5173") // React app URL
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
 
-// Configure Serilog for logging
+// Configure Serilog
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Debug()
     .WriteTo.Console()
@@ -37,17 +40,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "TilesBackendApi",
-        Version = "1.0",
-        Description = "Tiles backend API"
-    });
-    // Optional: If you have an XML documentation file
-    // c.IncludeXmlComments(Path.Combine(AppContext.BaseDirectory, "TilesApi.xml"));
-});
+builder.Services.AddSwaggerGen();
 
 // Dependency Injection for Product
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -60,21 +53,22 @@ builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-
-// Enable CORS before Swagger UI
-app.UseCors("AllowReactApp");
-
-// Enable Swagger
+// Swagger configuration
 app.UseSwagger();
-
-// Enable Swagger UI at the root (this will open Swagger UI when visiting /swagger)
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "TilesBackendApi v1");
-    c.RoutePrefix = string.Empty; // Serve Swagger UI at the root
+    c.SwaggerEndpoint("/swagger.json", "Tiles API");
+    // c.RoutePrefix = string.Empty; // Uncomment to host at root
 });
+
+
+// Enable CORS before controllers
+app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
+
