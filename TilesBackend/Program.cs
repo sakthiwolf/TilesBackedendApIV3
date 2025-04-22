@@ -53,11 +53,16 @@ builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
+// Swagger configuration
+app.UseSwagger();
+app.UseSwaggerUI(c =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API V1");
+    // c.RoutePrefix = string.Empty; // Uncomment to host at root
+});
+
+// Enable CORS before controllers
+app.UseCors("AllowReactApp");
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
@@ -65,3 +70,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+
