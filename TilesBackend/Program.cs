@@ -2,12 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Serilog;
 using Tiles.Core.ServiceContracts;
 using Tiles.Core.Services;
-
 using Tiles.Infrastructure.Repositories;
-
 using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Domain.RepositroyContracts;
-
 using Tiles.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,7 +37,24 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // Add services to the container
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+
+// Swagger configuration
+builder.Services.AddSwaggerGen(c =>
+{
+    // Define OpenApiInfo for documentation
+    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    {
+        Title = "Tiles API",
+        Version = "v1",
+        Description = "Tiles backend API",
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        {
+            Name = "Tiles API Support",
+            Url = new Uri("https://your-support-url.com")
+        }
+    });
+});
+
 
 // Dependency Injection for Product
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -53,22 +67,20 @@ builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-// Swagger configuration
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger.json", "Tiles API");
-    // c.RoutePrefix = string.Empty; // Uncomment to host at root
-});
-
 
 // Enable CORS before controllers
 app.UseCors("AllowReactApp");
 
+// Swagger configuration
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API v1");
+    // c.RoutePrefix = string.Empty; // Uncomment to host Swagger UI at the root
+});
+
 app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapControllers();
 
 app.Run();
-
