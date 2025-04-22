@@ -39,21 +39,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger configuration
-builder.Services.AddSwaggerGen(c =>
-{
-    // Define OpenApiInfo for documentation
-    c.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
-    {
-        Title = "Tiles API",
-        Version = "v1",
-        Description = "Tiles backend API",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
-        {
-            Name = "Tiles API Support",
-            Url = new Uri("https://your-support-url.com")
-        }
-    });
-});
+builder.Services.AddSwaggerGen();
+
 
 
 // Dependency Injection for Product
@@ -73,11 +60,8 @@ app.UseCors("AllowReactApp");
 
 // Swagger configuration
 app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API v1");
-    // c.RoutePrefix = string.Empty; // Uncomment to host Swagger UI at the root
-});
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 app.UseAuthorization();
