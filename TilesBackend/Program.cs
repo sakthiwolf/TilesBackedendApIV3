@@ -10,6 +10,7 @@ using Tiles.Core.Domain.RepositroyContracts;
 
 using Tiles.Infrastructure.Data;
 
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Enable CORS to allow requests from your React app
@@ -53,14 +54,12 @@ builder.Services.AddScoped<IUserService, UserService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-// Swagger configuration
-app.UseSwagger();
+app.UseSwagger(); // Serve Swagger JSON at /swagger.json
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger.json", "Tiles API");
-    c.RoutePrefix = string.Empty; // Uncomment to host at root
+    c.SwaggerEndpoint("/swagger.json", "Tiles API"); // Correct endpoint path for Swagger JSON
+    c.RoutePrefix = string.Empty; // Serve Swagger UI at the root
 });
-
 
 // Enable CORS before controllers
 app.UseCors("AllowReactApp");
@@ -68,6 +67,7 @@ app.UseCors("AllowReactApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 
+// Map controllers
 app.MapControllers();
 
 app.Run();
