@@ -8,12 +8,12 @@ namespace TilesBackendApI.Controllers
     [Route("api/[controller]")]
   
     
-        public class UserController : ControllerBase
+        public class authController : ControllerBase
         {
             private readonly IUserService _userService;
 
             // Constructor to inject the user service dependency
-            public UserController(IUserService userService)
+            public authController(IUserService userService)
             {
                 _userService = userService;
             }

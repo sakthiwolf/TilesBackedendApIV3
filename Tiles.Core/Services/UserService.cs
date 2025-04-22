@@ -173,9 +173,9 @@ public class UserService : IUserService
         if (user == null)
             return ServiceResult.CreateFailure("User not found.");
 
-        // Generate OTP and expiry
+        // Generate OTP and expiry using UTC time
         var otp = new Random().Next(100000, 999999).ToString();
-        var otpExpiry = DateTime.Now.AddMinutes(10);
+        var otpExpiry = DateTime.UtcNow.AddMinutes(10); // Use UTC to ensure consistent expiry checks
 
         user.Otp = otp;
         user.OtpExpiry = otpExpiry;
@@ -206,6 +206,7 @@ public class UserService : IUserService
 
         return ServiceResult.CreateSuccess("OTP sent successfully");
     }
+
 
     // Sends email using SMTP configuration
     public async Task SendEmailAsync(string toEmail, string toName, string subject, string htmlBody)
@@ -248,12 +249,13 @@ public class UserService : IUserService
         if (user == null || user.Otp != otp)
             return ServiceResult.CreateFailure("Invalid or expired OTP");
 
-        // Check OTP expiry
-        if (DateTime.Now > user.OtpExpiry)
+        // Check OTP expiry using UTC time
+        if (DateTime.UtcNow > user.OtpExpiry)
             return ServiceResult.CreateFailure("OTP expired");
 
         return ServiceResult.CreateSuccess("OTP verified successfully");
     }
+
 
     // Generates a random temporary password
     private string GenerateTemporaryPassword(int length = 10)

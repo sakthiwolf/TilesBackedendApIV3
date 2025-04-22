@@ -57,9 +57,10 @@ var app = builder.Build();
 app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tiles API V1");
-    // c.RoutePrefix = string.Empty; // Uncomment to host at root
+    c.SwaggerEndpoint("/swagger.json", "Tiles API");
+    c.RoutePrefix = string.Empty; // Uncomment to host at root
 });
+
 
 // Enable CORS before controllers
 app.UseCors("AllowReactApp");
