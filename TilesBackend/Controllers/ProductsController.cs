@@ -1,82 +1,60 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Tiles.Core.ServiceContracts;
-using Microsoft.Extensions.Logging;
 using Tiles.Core.DTO.ProductDto;
+using Tiles.Core.ServiceContracts;
 
-namespace TilesBackend.Controllers
+namespace Tiles.WebAPI.Controllers
 {
-    [Route("api/[controller]")]
     [ApiController]
+    [Route("api/[controller]")]
     public class ProductsController : ControllerBase
     {
         private readonly IProductService _service;
-        private readonly ILogger<ProductsController> _logger;
 
-        public ProductsController(IProductService service, ILogger<ProductsController> logger)
+        public ProductsController(IProductService service)
         {
             _service = service;
-            _logger = logger;
         }
 
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] ProductRequest dto)
+        public async Task<IActionResult> CreateProduct(ProductRequest request)
         {
-            _logger.LogInformation("POST request received to create a product: {ProductName}", dto.Name);
-
-            var id = await _service.AddProduct(dto);
-            _logger.LogInformation("Product created successfully with ID: {ProductId}", id);
-
-            return CreatedAtAction(nameof(Get), new { id }, new { id, dto.Name, dto.Price });
+            var id = await _service.AddProduct(request);
+            return CreatedAtAction(nameof(GetProductById), new { id }, new { message = "Product created", id });
         }
 
-        [HttpPut("{id}")]
-        public async Task<IActionResult> Put(int id, [FromBody] ProductUpdateRequest dto)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateProduct(Guid id, ProductUpdateRequest request)
         {
-            _logger.LogInformation("PUT request received to update product with ID: {ProductId}", id);
-
-            await _service.UpdateProduct(id, dto);
-            _logger.LogInformation("Product with ID {ProductId} updated successfully.", id);
-
-            return NoContent();
+            await _service.UpdateProduct(id, request);
+            return Ok(new { message = "Product updated successfully" });
         }
 
         [HttpGet]
-        public async Task<IActionResult> Get()
+        public async Task<IActionResult> GetAllProducts()
         {
-            _logger.LogInformation("GET request received to fetch all products.");
-
             var products = await _service.GetAllProducts();
-
-            _logger.LogInformation("Returned {Count} products.", products.Count());
-
             return Ok(products);
         }
 
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        [HttpGet("filter")]
+        public async Task<IActionResult> GetFiltered( Guid? categoryId, Guid? subCategoryId)
         {
-            _logger.LogInformation("GET request received for product ID: {ProductId}", id);
-
+            var products = await _service.GetProductsByFilter(categoryId, subCategoryId);
+            return Ok(products);
+        }
+         
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetProductById(Guid id)
+        {
             var product = await _service.GetProductById(id);
-            if (product == null)
-            {
-                _logger.LogWarning("Product with ID {ProductId} not found.", id);
-                return NotFound();
-            }
-
-            _logger.LogInformation("Product with ID {ProductId} returned successfully.", id);
-            return Ok(product);
+            return product == null ? NotFound(new { message = "Product not found" }) : Ok(product);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> DeleteProduct(Guid id)
         {
-            _logger.LogInformation("DELETE request received for product ID: {ProductId}", id);
-
             await _service.DeleteProduct(id);
-
-            _logger.LogInformation("Product with ID {ProductId} deleted successfully.", id);
-            return NoContent();
+            return Ok(new { message = "Product deleted successfully" });
         }
     }
 }

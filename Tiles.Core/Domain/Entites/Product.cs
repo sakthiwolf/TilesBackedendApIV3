@@ -8,8 +8,15 @@ namespace Tiles.Core.Domain.Entites
 {
     public class Product
     {
-        public int Id { get; set; }
-        public string Name { get; set; } = "";
-        public decimal Price { get; set; }
+        public Guid Id { get; set; }  // PostgreSQL UUID support
+        public Guid Category { get; set; }
+        public Guid SubCategory { get; set; }
+        public string ProductName { get; set; }
+        public string ProductImage { get; set; }
+        public List<string> ProductSizes { get; set; }
+        public string Description { get; set; }
+        public List<string> Colors { get; set; }
+        public string Disclaimer { get; set; }
+        public int Stock { get; set; }
     }
 }

@@ -20,7 +20,7 @@ namespace TilesBackendApI.Controllers
 
             // Register a new user
             [HttpPost("register")]
-            public async Task<IActionResult> RegisterUser([FromBody] UserRequestDto dto)
+            public async Task<IActionResult> RegisterUser(UserRequestDto dto)
             {
                 var result = await _userService.RegisterUserAsync(dto);
 
@@ -33,7 +33,7 @@ namespace TilesBackendApI.Controllers
 
             // Get a list of users with pagination and optional search filter
             [HttpGet]
-            public async Task<IActionResult> GetUsers([FromQuery] string search = "", [FromQuery] int pageNo = 1, [FromQuery] int rowsPerPage = 10)
+            public async Task<IActionResult> GetUsers( string search = "",  int pageNo = 1, int rowsPerPage = 10)
             {
                 var result = await _userService.GetUsersAsync(search, pageNo, rowsPerPage);
                 return Ok(result);
@@ -52,21 +52,24 @@ namespace TilesBackendApI.Controllers
                 return Ok(user);
             }
 
-            // Edit an existing user by their ID
-            [HttpPut("{id}")]
-            public async Task<IActionResult> EditUser(Guid id, [FromBody] UserRequestDto dto)
-            {
-                var result = await _userService.UpdateUserAsync(id, dto);
+        // Edit an existing user by their ID
+           [HttpPut("{id}")]
+          public async Task<IActionResult> EditUser(Guid id, UserRequestDto dto)
+        {
+            if (id == Guid.Empty)
+                return BadRequest(new { msg = "User ID is required" });
 
-                // Return 404 if user update failed
-                if (!result.Success)
-                    return NotFound(new { msg = result.Message });
+            var result = await _userService.UpdateUserAsync(id, dto);
 
-                return Ok(new { msg = result.Message });
-            }
+            if (!result.Success)
+                return NotFound(new { msg = result.Message });
 
-            // Delete a user by their ID
-            [HttpDelete("{id}")]
+            return Ok(new { msg = result.Message });
+        }
+
+
+          // Delete a user by their ID
+          [HttpDelete("{id}")]
             public async Task<IActionResult> DeleteUser(Guid id)
             {
                 var result = await _userService.DeleteUserAsync(id);
@@ -80,7 +83,7 @@ namespace TilesBackendApI.Controllers
 
             // User login with email and password
             [HttpPost("login")]
-            public async Task<IActionResult> Login([FromBody] LoginDto dto)
+            public async Task<IActionResult> Login( LoginDto dto)
             {
                 var result = await _userService.LoginAsync(dto);
 
@@ -92,8 +95,8 @@ namespace TilesBackendApI.Controllers
             }
 
             // Update user password
-            [HttpPut("update-password")]
-            public async Task<IActionResult> UpdatePassword([FromBody] UpdatePasswordDto dto)
+            [HttpPut("updatePassword")]
+            public async Task<IActionResult> UpdatePassword(UpdatePasswordDto dto)
             {
                 var result = await _userService.UpdatePasswordAsync(dto);
 
@@ -104,102 +107,12 @@ namespace TilesBackendApI.Controllers
                 return Ok(new { msg = result.Message });
             }
 
-            // Forgot password - sends an OTP to the user's email
-            [HttpPost("forgot-password")]
-            public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
-            {
-                var result = await _userService.ForgotPasswordAsync(dto.Email);
-
-                // Return NotFound if OTP sending fails
-                if (!result.Success)
-                    return NotFound(new { msg = result.Message });
-
-                return Ok(new { msg = "OTP sent successfully" });
-            }
-
-            // Verify OTP sent for password reset
-            [HttpPost("verify-otp")]
-            public async Task<IActionResult> VerifyOtp([FromBody] OtpVerifyDto dto)
-            {
-                var result = await _userService.VerifyOtpAsync(dto.Email, dto.Otp);
-
-                // Return BadRequest if OTP verification fails
-                if (!result.Success)
-                    return BadRequest(new { msg = result.Message });
-
-                return Ok(new { msg = "OTP verified successfully" });
-            }
-
-           // Fix for CS8604: Possible null reference argument for parameter 's' in 'int int.Parse(string s)'.
-           // Ensure that the string being passed to int.Parse is not null by using null-coalescing operator or null check.
-
-          [HttpGet("parse-example")]
-           public IActionResult ParseExample([FromQuery] string? input)
-        {
-            if (string.IsNullOrEmpty(input))
-            {
-                return BadRequest(new { msg = "Input cannot be null or empty" });
-            }
-
-            int parsedValue;
-            try
-            {
-                parsedValue = int.Parse(input);
-            }
-            catch (FormatException)
-            {
-                return BadRequest(new { msg = "Input is not a valid integer" });
-            }
-
-            return Ok(new { parsedValue });
-        }
+           
 
 
         }
 
 
-
-        //[HttpPost("forgot-password")]
-        //public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
-        //{
-        //    var result = await _userService.SendOtpAsync(dto.Email);
-        //    if (!result.Success)
-        //        return BadRequest(new { msg = result.Message });
-
-        //    return Ok(new { msg = result.Message });
-        //}
-
-        //[HttpPost("verify-otp")]
-        //public async Task<IActionResult> VerifyOtp([FromBody] OtpVerifyDto dto)
-        //{
-        //    var result = await _userService.VerifyOtpAsync(dto.Email, dto.Otp);
-        //    if (!result.Success)
-        //        return BadRequest(new { msg = result.Message });
-
-        //    return Ok(new { msg = result.Message });
-        //}
-
-        // POST api/email/send
-        //[HttpPost("send")]
-        //public async Task<IActionResult> SendEmail([FromBody] SendEmailRequest request)
-        //{
-        //    if (string.IsNullOrEmpty(request.To) || string.IsNullOrEmpty(request.Subject) || string.IsNullOrEmpty(request.Body))
-        //    {
-        //        return BadRequest("To, Subject, and Body are required.");
-        //    }
-
-        //    try
-        //    {
-        //        await _userService.SendEmailAsync(request.To, request.Subject, request.Body);
-        //        return Ok("Email sent successfully.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return StatusCode(500, $"Internal server error: {ex.Message}");
-        //    }
-        //}
-
-
-    }
+}
 
 

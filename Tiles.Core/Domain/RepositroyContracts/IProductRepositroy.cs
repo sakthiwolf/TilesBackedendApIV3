@@ -1,18 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tiles.Core.Domain.Entites;
+﻿using Tiles.Core.Domain.Entites;
 
 namespace Tiles.Core.Domain.RepositroyContracts
 {
     public interface IProductRepository
     {
+        Task<Product> CreateAsync(Product product);
+        Task<Product?> GetByIdAsync(Guid id);
         Task<IEnumerable<Product>> GetAllAsync();
-        Task<Product?> GetByIdAsync(int id);
-        Task AddAsync(Product product);
-        Task UpdateAsync(Product product);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<Product>> GetByFilterAsync(Guid? categoryId, Guid? subCategoryId);
+        Task<Product> UpdateAsync(Product product);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

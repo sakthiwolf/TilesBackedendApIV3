@@ -8,10 +8,10 @@ using Tiles.Core.Wrappers;
 using MailKit.Net.Smtp;
 using Tiles.Core.DTO.UserDto;
 using Tiles.Core.Domain.Entities;
-
+ 
 public class UserService : IUserService
 {
-    private readonly IUserRepository _userRepository;
+    private readonly IUserRepository _userRepository; 
     private readonly IConfiguration _configuration;
 
     // Constructor with DI for user repository and configuration
@@ -52,16 +52,96 @@ public class UserService : IUserService
 
         await _userRepository.AddAsync(user);
 
-        // Compose welcome email with temp password
-        var htmlContent = $@"
-        <p>Hello {dto.Name},</p>
-        <p>Your temporary password is: <b>{tempPassword}</b></p>
-        <p>Click <a href=""https://localhost:5173"">here</a> to log in.</p>";
+        // Send email only if the user is active
+        if (dto.IsActive)
+        {
+            var htmlContent = $@"
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }}
+    .container {{
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }}
+    .header {{
+      text-align: center;
+      padding-bottom: 20px;
+    }}
+    .footer {{
+      font-size: 12px;
+      color: #888888;
+      text-align: center;
+      padding-top: 20px;
+    }}
+    .button {{
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+    }}
+  </style>
+</head>
+<body>
+  <div class=""container"">
+    <div class=""header"">
+      <h2>Welcome to Endless Enterprise</h2>
+    </div>
+    <p>Hi {dto.Name},</p>
+    <p>We're excited to have you on board! Your account has been created successfully.</p>
+    <p><strong>Temporary Password:</strong> {tempPassword}</p>
+    <p>We recommend you log in and change your password as soon as possible.</p>
+    <p>
+      <a href=""https://localhost:5173"" class=""button"">Log In Now</a>
+    </p>
+    <p>If you have any questions, feel free to contact our support team.</p>
+    <div class=""footer"">
+      <p>&copy; {DateTime.UtcNow.Year} Your Company. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>";
 
-        await SendEmailAsync(dto.Email, dto.Name, "Welcome! Set up your password", htmlContent);
+            var plainTextContent = $@"
+Hi {dto.Name},
+
+Welcome to Our Platform!
+
+Your temporary password is: {tempPassword}
+
+Please visit https://localhost:5173 to log in and set your new password.
+
+Thank you,
+Your Company Team
+";
+
+            await SendEmailAsync(
+                toEmail: dto.Email,
+                toName: dto.Name,
+                subject: "Welcome! Set up your password",
+                htmlBody: htmlContent
+            );
+        }
 
         return ServiceResult.CreateSuccess("User registered successfully");
     }
+
+
 
     // Authenticates user and generates token (stubbed)
     public async Task<ServiceResult<TokenResponseDto>> LoginAsync(LoginDto dto)
@@ -87,7 +167,7 @@ public class UserService : IUserService
         return ServiceResult<TokenResponseDto>.CreateSuccess(new TokenResponseDto
         {
             Token = token,
-            User = userDto
+            UserData = userDto
         }, "Login successful.");
     }
 
@@ -129,10 +209,13 @@ public class UserService : IUserService
         var users = await _userRepository.GetUsersAsync(search, pageNo, rowsPerPage);
         var total = await _userRepository.GetTotalCountAsync(search);
 
-        var result = users.Select(u => new UserResponseDto
+        // Calculate the starting serial number for the current page
+        int startSerial = (pageNo - 1) * rowsPerPage + 1;
+
+        var result = users.Select((u, index) => new UserResponseDto
         {
             Id = u.Id,
-            SerialNumber = u.SerialNumber,
+            SerialNumber = startSerial + index,  // assign sequential S.No dynamically
             Name = u.Name,
             Designation = u.Designation,
             Email = u.Email,
@@ -142,6 +225,7 @@ public class UserService : IUserService
 
         return PaginatedResult<UserResponseDto>.CreateSuccess(result, pageNo, rowsPerPage, total);
     }
+
 
     // Deletes user by ID
     public async Task<ServiceResult> DeleteUserAsync(Guid id)
@@ -173,29 +257,91 @@ public class UserService : IUserService
         if (user == null)
             return ServiceResult.CreateFailure("User not found.");
 
-        // Generate OTP and expiry using UTC time
+        // Generate OTP and set expiry (use UTC)
         var otp = new Random().Next(100000, 999999).ToString();
-        var otpExpiry = DateTime.UtcNow.AddMinutes(10); // Use UTC to ensure consistent expiry checks
+        var otpExpiry = DateTime.UtcNow.AddMinutes(10);
 
         user.Otp = otp;
         user.OtpExpiry = otpExpiry;
         await _userRepository.UpdateAsync(user);
 
-        // Compose and send OTP email
+        // Load SMTP configuration
         var smtpServer = _configuration["EmailSettings:SmtpServer"];
         var smtpPort = int.Parse(_configuration["EmailSettings:Port"]);
         var fromEmail = _configuration["EmailSettings:Email"];
         var fromPassword = _configuration["EmailSettings:Password"];
 
+        // HTML content (Gmail friendly)
+        var htmlContent = $@"
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      padding: 0;
+      margin: 0;
+    }}
+    .container {{
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }}
+    .header {{
+      text-align: center;
+      padding-bottom: 20px;
+    }}
+    .otp-box {{
+      font-size: 24px;
+      font-weight: bold;
+      background-color: #f0f0f0;
+      padding: 15px;
+      text-align: center;
+      border-radius: 5px;
+      letter-spacing: 2px;
+    }}
+    .footer {{
+      font-size: 12px;
+      color: #888888;
+      text-align: center;
+      padding-top: 20px;
+    }}
+  </style>
+</head>
+<body>
+  <div class=""container"">
+    <div class=""header"">
+      <h2>Password Reset Request</h2>
+    </div>
+    <p>Hi {user.Name},</p>
+    <p>You recently requested to reset your password. Please use the following OTP to proceed:</p>
+    <div class=""otp-box"">{otp}</div>
+    <p>This OTP is valid for 10 minutes.</p>
+    <p>If you didn’t request this, please ignore this email.</p>
+    <div class=""footer"">
+      <p>&copy; {DateTime.UtcNow.Year} Endless Enterprise. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>";
+
+        // Create email
         var message = new MimeMessage();
         message.From.Add(new MailboxAddress("Endless Enterprise", fromEmail));
         message.To.Add(new MailboxAddress(user.Name, user.Email));
         message.Subject = "Reset Your Password";
         message.Body = new TextPart("html")
         {
-            Text = $"<p>Your OTP for password reset is: <b>{otp}</b></p><p>This OTP will expire in 10 minutes.</p>"
+            Text = htmlContent
         };
 
+        // Send email via SMTP
         using (var client = new SmtpClient())
         {
             await client.ConnectAsync(smtpServer, smtpPort, SecureSocketOptions.StartTls);
@@ -206,6 +352,7 @@ public class UserService : IUserService
 
         return ServiceResult.CreateSuccess("OTP sent successfully");
     }
+
 
 
     // Sends email using SMTP configuration
