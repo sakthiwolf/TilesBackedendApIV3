@@ -17,26 +17,76 @@ namespace TilesBackendApI.Controllers
 
         // Forgot password - sends an OTP to the user's email
         [HttpPost("forgotPasswordEmail")]
-        public async Task<IActionResult> ForgotPassword( ForgotPasswordDto dto)
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordDto dto)
         {
-            var result = await _userService.ForgotPasswordAsync(dto.Email);
+            try
+            {
+                // Check for null request
+                if (dto == null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
 
-            if (!result.Success)
-                return NotFound(new { msg = result.Message });
+                // Validate model state
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
 
-            return Ok(new { msg = "OTP sent successfully" });
+                    return BadRequest(new { errors });
+                }
+
+
+                var result = await _userService.ForgotPasswordAsync(dto.Email);
+
+                if (!result.Success)
+                    return NotFound(new { msg = result.Message });
+
+                return Ok(new { msg = "OTP sent successfully" });
+            }
+            catch (Exception ex)
+            {
+                // Log exception as needed
+
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
         }
 
         // Verify OTP sent for password reset
         [HttpPost("verifyOtp")]
         public async Task<IActionResult> VerifyOtp(OtpVerifyDto dto)
         {
-            var result = await _userService.VerifyOtpAsync(dto.Email, dto.Otp);
+            try
+            {
+                // Check for null request
+                if (dto == null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
 
-            if (!result.Success)
-                return BadRequest(new { msg = result.Message });
+                // Validate model state
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
 
-            return Ok(new { msg = "OTP verified successfully" });
+                    return BadRequest(new { errors });
+                }
+
+
+                var result = await _userService.VerifyOtpAsync(dto.Email, dto.Otp);
+
+                if (!result.Success)
+                    return BadRequest(new { msg = result.Message });
+
+                return Ok(new { msg = "OTP verified successfully" });
+            }
+            catch (Exception ex)
+            {
+                // Log exception as needed
+
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
         }
     }
 }

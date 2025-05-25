@@ -1,4 +1,4 @@
-﻿// Subcategory.cs
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -6,15 +6,16 @@ namespace Tiles.Core.Domain.Entities
 {
     public class Subcategory
     {
+        [Key]
         public Guid Id { get; set; }
 
-        [Required]
+      
         public string Name { get; set; } = string.Empty;
 
-        [Required]
+       
         public Guid CategoryId { get; set; }
 
-        [ForeignKey("CategoryId")]
+        [ForeignKey(nameof(CategoryId))]
         public Category Category { get; set; } = null!;
     }
 }

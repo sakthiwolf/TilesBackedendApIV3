@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Tiles.Core.Domain.Entities;
 using System;
-using Tiles.Core.Domain.Entites;
+
 
 namespace Tiles.Infrastructure.Data
 {

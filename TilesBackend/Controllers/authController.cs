@@ -6,113 +6,196 @@ namespace TilesBackendApI.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-  
-    
-        public class authController : ControllerBase
+    public class authController : ControllerBase
+    {
+        private readonly IUserService _userService;
+
+        public authController(IUserService userService)
         {
-            private readonly IUserService _userService;
+            _userService = userService;
+        }
 
-            // Constructor to inject the user service dependency
-            public authController(IUserService userService)
+        [HttpPost("register")]
+        public async Task<IActionResult> RegisterUser(UserRequestDto dto)
+        {
+            try
             {
-                _userService = userService;
-            }
+                if (dto is null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
 
-            // Register a new user
-            [HttpPost("register")]
-            public async Task<IActionResult> RegisterUser(UserRequestDto dto)
-            {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
+
+                    return BadRequest(new { errors });
+                }
+
+
+
                 var result = await _userService.RegisterUserAsync(dto);
 
-                // Check if registration was successful, return appropriate response
                 if (!result.Success)
                     return BadRequest(new { msg = result.Message });
 
                 return Created("", new { msg = result.Message });
             }
+            catch (Exception ex)
+            {
+                // Log exception here if needed
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
+        }
 
-            // Get a list of users with pagination and optional search filter
-            [HttpGet]
-            public async Task<IActionResult> GetUsers( string search = "",  int pageNo = 1, int rowsPerPage = 10)
+        [HttpGet]
+        public async Task<IActionResult> GetUsers(string search = "", int pageNo = 1, int rowsPerPage = 10)
+        {
+            try
             {
                 var result = await _userService.GetUsersAsync(search, pageNo, rowsPerPage);
                 return Ok(result);
             }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
+        }
 
-            // Get user by ID
-            [HttpGet("{id}")]
-            public async Task<IActionResult> GetUserById(Guid id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUserById(Guid id)
+        {
+            try
             {
                 var user = await _userService.GetUserByIdAsync(id);
 
-                // Return 404 if user not found
-                if (user == null)
+                if (user is null)
                     return NotFound(new { msg = "User not found" });
 
                 return Ok(user);
             }
-
-        // Edit an existing user by their ID
-           [HttpPut("{id}")]
-          public async Task<IActionResult> EditUser(Guid id, UserRequestDto dto)
-        {
-            if (id == Guid.Empty)
-                return BadRequest(new { msg = "User ID is required" });
-
-            var result = await _userService.UpdateUserAsync(id, dto);
-
-            if (!result.Success)
-                return NotFound(new { msg = result.Message });
-
-            return Ok(new { msg = result.Message });
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
         }
 
-
-          // Delete a user by their ID
-          [HttpDelete("{id}")]
-            public async Task<IActionResult> DeleteUser(Guid id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> EditUser(Guid id, UserRequestDto dto)
+        {
+            try
             {
-                var result = await _userService.DeleteUserAsync(id);
+                if (id == Guid.Empty)
+                    return BadRequest(new { msg = "User ID is required" });
 
-                // Return 404 if deletion failed
+                if (dto == null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
+
+                    return BadRequest(new { errors });
+                }
+
+
+                var result = await _userService.UpdateUserAsync(id, dto);
+
                 if (!result.Success)
                     return NotFound(new { msg = result.Message });
 
                 return Ok(new { msg = result.Message });
             }
-
-            // User login with email and password
-            [HttpPost("login")]
-            public async Task<IActionResult> Login( LoginDto dto)
+            catch (Exception ex)
             {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteUser(Guid id)
+        {
+            try
+            {
+                var result = await _userService.DeleteUserAsync(id);
+
+                if (!result.Success)
+                    return NotFound(new { msg = result.Message });
+
+                return Ok(new { msg = result.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
+        }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(LoginDto dto)
+        {
+            try
+            {
+                if (dto is null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
+
+                    return BadRequest(new { errors });
+                }
+
+
                 var result = await _userService.LoginAsync(dto);
 
-                // Return Unauthorized if login fails
                 if (!result.Success)
                     return Unauthorized(new { msg = result.Message });
 
                 return Ok(result.Data);
             }
-
-            // Update user password
-            [HttpPut("updatePassword")]
-            public async Task<IActionResult> UpdatePassword(UpdatePasswordDto dto)
+            catch (Exception ex)
             {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
+        }
+
+        [HttpPut("updatePassword")]
+        public async Task<IActionResult> UpdatePassword(UpdatePasswordDto dto)
+        {
+            try
+            {
+                if (dto is null)
+                    return BadRequest(new { msg = "Request body cannot be null" });
+
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState
+                        .Where(ms => ms.Value?.Errors?.Count > 0)
+                        .SelectMany(ms => ms.Value!.Errors.Select(e => e.ErrorMessage))
+                        .ToList();
+
+                    return BadRequest(new { errors });
+                }
+
+
                 var result = await _userService.UpdatePasswordAsync(dto);
 
-                // Return BadRequest if password update fails
                 if (!result.Success)
                     return BadRequest(new { msg = result.Message });
 
                 return Ok(new { msg = result.Message });
             }
-
-           
-
-
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { msg = "An unexpected error occurred.", error = ex.Message });
+            }
         }
-
-
+    }
 }
-
-

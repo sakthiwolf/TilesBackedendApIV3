@@ -1,7 +1,7 @@
 ﻿using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-using Tiles.Core.Domain.Entites;
+
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Wrappers;

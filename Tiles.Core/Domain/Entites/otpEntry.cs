@@ -1,15 +1,14 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
-namespace Tiles.Core.Domain.Entites
+namespace Tiles.Core.Domain.Entities
 {
     public class OtpEntry
     {
+ 
         public string Otp { get; set; } = string.Empty;
+
+        
         public DateTime Expiry { get; set; }
     }
-
 }

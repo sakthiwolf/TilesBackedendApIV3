@@ -1,5 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Tiles.Core.Domain.Entites;
+
 using Tiles.Core.Domain.Entities;
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Infrastructure.Data;

@@ -9,7 +9,6 @@ using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Core.Domain.RepositoryContracts;
 
-// Create builder
 var builder = WebApplication.CreateBuilder(args);
 
 // -------------------------
@@ -47,7 +46,13 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // -------------------------
 // Add controllers and Swagger
 // -------------------------
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        // This allows custom validation responses from controller
+        options.SuppressModelStateInvalidFilter = true;
+    });
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
@@ -74,11 +79,8 @@ builder.Services.AddScoped<ICategoryService, CategoryService>();
 // -------------------------
 // Dependency Injection: Seller Repository and Seller Service
 // -------------------------
-
-
 builder.Services.AddScoped<ISellerRepository, SellerRepository>();
 builder.Services.AddScoped<ISellerService, SellerService>();
-
 
 // -------------------------
 // Build and configure app
@@ -120,4 +122,5 @@ app.UseWhen(context => context.Request.Path.StartsWithSegments("/api/upload"), a
 // -------------------------
 app.UseAuthorization();
 app.MapControllers();
+
 app.Run();

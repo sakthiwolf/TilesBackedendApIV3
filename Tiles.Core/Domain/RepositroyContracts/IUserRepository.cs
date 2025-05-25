@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Tiles.Core.Domain.Entites;
+
 using Tiles.Core.Domain.Entities;
 
 namespace Tiles.Core.Domain.RepositroyContracts
