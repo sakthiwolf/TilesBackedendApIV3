@@ -6,11 +6,11 @@ namespace Tiles.API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SellersController : ControllerBase
+    public class SellerController : ControllerBase
     {
         private readonly ISellerService _service;
 
-        public SellersController(ISellerService service)
+        public SellerController(ISellerService service)
         {
             _service = service;
         }
@@ -86,7 +86,7 @@ namespace Tiles.API.Controllers
 
 
                 var seller = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = seller.Id }, seller);
+                return CreatedAtAction(nameof(GetById), new { id = seller._id }, seller);
             }
             catch (Exception ex)
             {

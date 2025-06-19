@@ -1,13 +1,16 @@
 ﻿using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using MimeKit;
-
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 using Tiles.Core.Wrappers;
 using MailKit.Net.Smtp;
 using Tiles.Core.DTO.UserDto;
 using Tiles.Core.Domain.Entities;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
  
 public class UserService : IUserService
 {
@@ -144,32 +147,84 @@ Your Company Team
 
 
     // Authenticates user and generates token (stubbed)
-    public async Task<ServiceResult<TokenResponseDto>> LoginAsync(LoginDto dto)
+    //public async Task<ServiceResult<TokenResponseDto>> LoginAsync(LoginDto dto)
+    //{
+    //    var user = await _userRepository.GetByEmailAsync(dto.Email);
+
+    //    if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
+    //        return ServiceResult<TokenResponseDto>.CreateFailure("Invalid email or password.");
+
+    //    if (!user.IsActive)
+    //        return ServiceResult<TokenResponseDto>.CreateFailure("Your account is deactivated. Please contact support.");
+
+    //    // Generate a JWT token (stubbed for now)
+    //    var token = GenerateToken(user);
+
+    //    var userDto = new UserResponseDto
+    //    {
+    //        _id = user.Id,
+    //        SerialNumber = user.SerialNumber,
+    //        Name = user.Name,
+    //        Email = user.Email,
+    //        Designation = user.Designation,
+    //        Phone = user.Phone,
+    //        IsActive = user.IsActive,
+    //        IsFirst = user.IsFirst
+
+    //    };
+
+    //    return ServiceResult<TokenResponseDto>.CreateSuccess(new TokenResponseDto
+    //    {
+    //        Token = token,
+    //        UserData = userDto
+    //    }, "Login successful.");
+    //}
+    public async Task<ServiceResult<object>> LoginAsync(LoginDto dto)
     {
         var user = await _userRepository.GetByEmailAsync(dto.Email);
+
         if (user == null || !BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
-            return ServiceResult<TokenResponseDto>.CreateFailure("Invalid email or password.");
+            return ServiceResult<object>.CreateFailure("Invalid Credentials");
 
-        // Generate a JWT token (stubbed for now)
-        var token = GenerateToken(user);
-
-        var userDto = new UserResponseDto
+        if (!user.IsActive)
         {
-            Id = user.Id,
-            SerialNumber = user.SerialNumber,
-            Name = user.Name,
-            Email = user.Email,
-            Designation = user.Designation,
-            Phone = user.Phone,
-            IsActive = user.IsActive
+            return ServiceResult<object>.CreateSuccess(new
+            {
+                msg = "User account is inactive",
+                isActive = false
+            });
+        }
+
+        if (user.IsFirst)
+        {
+            return ServiceResult<object>.CreateSuccess(new
+            {
+                msg = "Password change required",
+                isFirst = true
+            });
+        }
+
+        var token = GenerateToken(user); // Your JWT generation logic here
+
+        var userData = new
+        {
+            id = user.Id,
+            name = user.Name,
+            email = user.Email,
+            designation = user.Designation,
+            phone = user.Phone,
+            isActive = user.IsActive
         };
 
-        return ServiceResult<TokenResponseDto>.CreateSuccess(new TokenResponseDto
+        return ServiceResult<object>.CreateSuccess(new
         {
-            Token = token,
-            UserData = userDto
-        }, "Login successful.");
+            token = token,
+            userData = userData
+        });
     }
+
+
+
 
     // Updates an existing user's profile
     public async Task<ServiceResult> UpdateUserAsync(Guid id, UserRequestDto dto)
@@ -177,15 +232,93 @@ Your Company Team
         var user = await _userRepository.GetByIdAsync(id);
         if (user == null) return ServiceResult.CreateFailure("User not found.");
 
-        // Update fields
+        bool isEmailChanged = !string.Equals(user.Email, dto.Email, StringComparison.OrdinalIgnoreCase);
+
+        // If email has changed, generate temp password and send welcome email
+        if (isEmailChanged)
+        {
+            var tempPassword = GenerateTemporaryPassword();
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+
+            user.Email = dto.Email;
+            user.PasswordHash = hashedPassword;
+            user.IsFirst = true;
+
+            var htmlContent = $@"
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset=""UTF-8"">
+  <meta name=""viewport"" content=""width=device-width, initial-scale=1.0"">
+  <style>
+    body {{
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }}
+    .container {{
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }}
+    .header {{
+      text-align: center;
+      padding-bottom: 20px;
+    }}
+    .footer {{
+      font-size: 12px;
+      color: #888888;
+      text-align: center;
+      padding-top: 20px;
+    }}
+    .button {{
+      display: inline-block;
+      padding: 10px 20px;
+      background-color: #007BFF;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 20px;
+    }}
+  </style>
+</head>
+<body>
+  <div class=""container"">
+    <div class=""header"">
+      <h2>Welcome to Endless Enterprise</h2>
+    </div>
+    <p>Hi {dto.Name},</p>
+    <p>Your account email has been updated. Here is your new temporary password:</p>
+    <p><strong>Temporary Password:</strong> {tempPassword}</p>
+    <p>Please log in and change your password immediately.</p>
+    <p>
+      <a href=""https://localhost:5173"" class=""button"">Log In Now</a>
+    </p>
+    <p>If you did not request this change, please contact support.</p>
+    <div class=""footer"">
+      <p>&copy; {DateTime.UtcNow.Year} Endless Enterprise. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>";
+
+            await SendEmailAsync(user.Email, user.Name, "Updated Email - Your New Temporary Password", htmlContent);
+        }
+
+        // Update other fields
         user.Name = dto.Name;
         user.Designation = dto.Designation;
         user.Phone = dto.Phone;
         user.IsActive = dto.IsActive;
 
         await _userRepository.UpdateAsync(user);
-        return ServiceResult.CreateSuccess("User updated.");
+        return ServiceResult.CreateSuccess("User updated successfully.");
     }
+
 
     // Gets user details by ID
     public async Task<UserResponseDto?> GetUserByIdAsync(Guid id)
@@ -193,7 +326,7 @@ Your Company Team
         var user = await _userRepository.GetByIdAsync(id);
         return user == null ? null : new UserResponseDto
         {
-            Id = user.Id,
+            _id = user.Id,
             SerialNumber = user.SerialNumber,
             Name = user.Name,
             Email = user.Email,
@@ -214,7 +347,7 @@ Your Company Team
 
         var result = users.Select((u, index) => new UserResponseDto
         {
-            Id = u.Id,
+            _id = u.Id,
             SerialNumber = startSerial + index,  // assign sequential S.No dynamically
             Name = u.Name,
             Designation = u.Designation,
@@ -226,7 +359,7 @@ Your Company Team
         return PaginatedResult<UserResponseDto>.CreateSuccess(result, pageNo, rowsPerPage, total);
     }
 
-
+     
     // Deletes user by ID
     public async Task<ServiceResult> DeleteUserAsync(Guid id)
     {
@@ -412,14 +545,37 @@ Your Company Team
     }
 
     // Placeholder JWT generator (replace with real JWT logic)
+
     private string GenerateToken(User user)
     {
-        return "jwt-token-placeholder";
+        var secretKey = _configuration["JwtSettings:SecretKey"];
+        var issuer = _configuration["JwtSettings:Issuer"];
+        var audience = _configuration["JwtSettings:Audience"];
+        var expiryMinutes = int.Parse(_configuration["JwtSettings:ExpiryMinutes"]);
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var claims = new[]
+        {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+        new Claim(JwtRegisteredClaimNames.Email, user.Email),
+        new Claim("name", user.Name),
+        new Claim("designation", user.Designation ?? ""),
+        new Claim("isActive", user.IsActive.ToString()),
+        new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+    };
+
+        var token = new JwtSecurityToken(
+            issuer: issuer,
+            audience: audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
+            signingCredentials: creds
+        );
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
-    // Unused method stub
-    // public Task<ServiceResult> SendOtpAsync(string email)
-    // {
-    //     throw new NotImplementedException();
-    // }
+  
 }

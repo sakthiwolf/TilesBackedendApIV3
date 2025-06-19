@@ -21,9 +21,9 @@ namespace Tiles.Core.Services
 
             var result = sellers.Select(s => new SellerResponseDto
             {
-                Id = s.Id,
+                _id = s.Id,
                 SerialNumber = s.SerialNumber,
-                Name = s.Name,
+                Name = s.Name, 
                 Map = s.Map,
                 WhatsappNumber = s.WhatsappNumber,
                 Email = s.Email,
@@ -43,7 +43,7 @@ namespace Tiles.Core.Services
 
             return new SellerResponseDto
             {
-                Id = seller.Id,
+                _id = seller.Id,
                 SerialNumber = seller.SerialNumber,
                 Name = seller.Name,
                 Map = seller.Map,

@@ -3,7 +3,7 @@ namespace Tiles.Core.DTO.SellerDto
 {
     public class SellerResponseDto
     {
-        public Guid Id { get; set; }
+        public Guid _id { get; set; }
         public int SerialNumber { get; set; }
         public string Name { get; set; } = null!;
         public string Map { get; set; } = null!;

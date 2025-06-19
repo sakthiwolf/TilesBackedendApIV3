@@ -8,13 +8,14 @@ namespace Tiles.Core.DTO.UserDto
 {
     public class UserResponseDto
     {
-        public Guid Id { get; set; }
+        public Guid _id { get; set; }
         public int SerialNumber { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Designation { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+        public bool IsFirst { get; set; } = true;
     }
 
 }

@@ -12,8 +12,8 @@ using Tiles.Infrastructure.Data;
 namespace Tiles.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250522163342_Initial")]
-    partial class Initial
+    [Migration("20250617160718_initial")]
+    partial class initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,51 +25,7 @@ namespace Tiles.Infrastructure.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Tiles.Core.Domain.Entites.Product", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("Category")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Colors")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Disclaimer")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProductImage")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("ProductSizes")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("Stock")
-                        .HasColumnType("integer");
-
-                    b.Property<Guid>("SubCategory")
-                        .HasColumnType("uuid");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Products");
-                });
-
-            modelBuilder.Entity("Tiles.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Category", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -97,6 +53,81 @@ namespace Tiles.Infrastructure.Migrations
                             Id = new Guid("5b9a3c84-2d5f-4b8e-97c9-6f7d8b2e3a1f"),
                             Name = "Category Two"
                         });
+                });
+
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Product", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Colors")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Disclaimer")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Link360")
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProductImage")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("ProductSizes")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("SerialNumber")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("Stock")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("SubCategoryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.HasIndex("SubCategoryId");
+
+                    b.ToTable("Products");
+                });
+
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Subcategory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CategoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Subcategories");
                 });
 
             modelBuilder.Entity("Tiles.Core.Domain.Entities.Seller", b =>
@@ -202,26 +233,6 @@ namespace Tiles.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Tiles.Core.Domain.Entities.Subcategory", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uuid");
-
-                    b.Property<Guid>("CategoryId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CategoryId");
-
-                    b.ToTable("Subcategories");
-                });
-
             modelBuilder.Entity("Tiles.Core.Domain.Entities.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -282,9 +293,28 @@ namespace Tiles.Infrastructure.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Tiles.Core.Domain.Entities.Subcategory", b =>
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Product", b =>
                 {
-                    b.HasOne("Tiles.Core.Domain.Entities.Category", "Category")
+                    b.HasOne("Tiles.Core.Domain.Entites.Category", "Category")
+                        .WithMany()
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Tiles.Core.Domain.Entites.Subcategory", "SubCategory")
+                        .WithMany()
+                        .HasForeignKey("SubCategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+
+                    b.Navigation("SubCategory");
+                });
+
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Subcategory", b =>
+                {
+                    b.HasOne("Tiles.Core.Domain.Entites.Category", "Category")
                         .WithMany("Subcategories")
                         .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -293,7 +323,7 @@ namespace Tiles.Infrastructure.Migrations
                     b.Navigation("Category");
                 });
 
-            modelBuilder.Entity("Tiles.Core.Domain.Entities.Category", b =>
+            modelBuilder.Entity("Tiles.Core.Domain.Entites.Category", b =>
                 {
                     b.Navigation("Subcategories");
                 });

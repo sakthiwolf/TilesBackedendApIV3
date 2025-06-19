@@ -3,7 +3,6 @@ using System.Net;
 
 namespace TilesBackendApI.Middleware
 {
-
     public class RateLimitMiddleware
     {
         private readonly RequestDelegate _next;
@@ -24,7 +23,6 @@ namespace TilesBackendApI.Middleware
         public async Task InvokeAsync(HttpContext context)
         {
             var ipAddress = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
-
             var cacheKey = $"RateLimit-{ipAddress}-{context.Request.Path}";
 
             var entry = _cache.GetOrCreate(cacheKey, cacheEntry =>
@@ -35,14 +33,13 @@ namespace TilesBackendApI.Middleware
 
             if (entry.Count >= _maxRequests)
             {
-                context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests; // 429
+                context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
                 await context.Response.WriteAsync(_limitMessage);
                 return;
             }
 
             entry.Count++;
             _cache.Set(cacheKey, entry, _window);
-
             await _next(context);
         }
 
@@ -52,15 +49,11 @@ namespace TilesBackendApI.Middleware
         }
     }
 
-    // Extension method for easy middleware registration
     public static class RateLimitMiddlewareExtensions
     {
-        public static IApplicationBuilder UseCustomRateLimit(this IApplicationBuilder builder,
-            int maxRequests, TimeSpan window, string limitMessage)
+        public static IApplicationBuilder UseCustomRateLimit(this IApplicationBuilder builder, int maxRequests, TimeSpan window, string limitMessage)
         {
             return builder.UseMiddleware<RateLimitMiddleware>(maxRequests, window, limitMessage);
         }
     }
 }
-
-

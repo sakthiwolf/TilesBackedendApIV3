@@ -1,15 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tiles.Core.Domain.Entities;
+﻿using Tiles.Core.Domain.Entites;
 
 namespace Tiles.Core.Domain.RepositroyContracts
 {
     public interface ICategoryRepository
     {
+        Task<List<Category>> GetAllWithSubcategoriesAsync();
+        Task<Category?> GetByIdAsync(Guid id);
+        Task<Category?> GetByNameAsync(string name);
         Task<Category> CreateAsync(Category category);
-        Task<IEnumerable<Category>> GetAllAsync();
+        Task<Category?> UpdateAsync(Category category);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

@@ -5,7 +5,7 @@ using Tiles.Infrastructure.Data;
 
 namespace Tiles.Infrastructure.Repositories
 {
-    public class SellerRepository : ISellerRepository
+    public class SellerRepository : ISellerRepository 
     {
         private readonly AppDbContext _context;
 

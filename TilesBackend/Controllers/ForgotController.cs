@@ -5,7 +5,7 @@ using Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces;
 namespace TilesBackendApI.Controllers
 {
     [ApiController]
-    [Route("api/forgot")]
+    [Route("api/[controller]")]
     public class ForgotController : ControllerBase
     {
         private readonly IUserService _userService;

@@ -1,30 +1,38 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Tiles.Core.Domain.Entities;
+using Tiles.Core.Domain.Entites;
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Infrastructure.Data;
 
 namespace Tiles.Infrastructure.Repositories
 {
-    /// <summary>
-    /// Repository implementation for managing Category entities in the database.
-    /// </summary>
     public class CategoryRepository : ICategoryRepository
     {
         private readonly AppDbContext _context;
 
-        /// <summary>
-        /// Constructor to inject the application's DbContext.
-        /// </summary>
-        /// <param name="context">The application's database context.</param>
-        public CategoryRepository(AppDbContext context) => _context = context;
+        public CategoryRepository(AppDbContext context)
+        {
+            _context = context;
+        }
 
-        /// <summary>
-        /// Adds a new Category to the database.
-        /// </summary>
-        /// <param name="category">The Category entity to be created.</param>
-        /// <returns>The created Category entity.</returns>
+        public async Task<List<Category>> GetAllWithSubcategoriesAsync()
+        {
+            return await _context.Categories
+                .Include(c => c.Subcategories)
+                .ToListAsync();
+        }
+
+        public async Task<Category?> GetByIdAsync(Guid id)
+        {
+            return await _context.Categories
+                .Include(c => c.Subcategories)
+                .FirstOrDefaultAsync(c => c.Id == id);
+        }
+
+        public async Task<Category?> GetByNameAsync(string name)
+        {
+            return await _context.Categories.FirstOrDefaultAsync(c => c.Name == name);
+        }
+
         public async Task<Category> CreateAsync(Category category)
         {
             _context.Categories.Add(category);
@@ -32,13 +40,24 @@ namespace Tiles.Infrastructure.Repositories
             return category;
         }
 
-        /// <summary>
-        /// Retrieves all Category records from the database.
-        /// </summary>
-        /// <returns>A list of all Category entities.</returns>
-        public async Task<IEnumerable<Category>> GetAllAsync()
+        public async Task<Category?> UpdateAsync(Category category)
         {
-            return await _context.Categories.ToListAsync();
+            var existing = await _context.Categories.FindAsync(category.Id);
+            if (existing == null) return null;
+
+            existing.Name = category.Name;
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var category = await _context.Categories.FindAsync(id);
+            if (category == null) return false;
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

@@ -55,7 +55,8 @@ namespace Tiles.Core.ServiceContracts.UserManagement.Application.Interfaces
         /// </summary>
         /// <param name="dto">The login data (email and password).</param>
         /// <returns>A ServiceResult containing a TokenResponseDto if authentication succeeds.</returns>
-        Task<ServiceResult<TokenResponseDto>> LoginAsync(LoginDto dto);
+        //Task<ServiceResult<TokenResponseDto>> LoginAsync(LoginDto dto);
+        Task<ServiceResult<object>> LoginAsync(LoginDto dto);
 
         /// <summary>
         /// Updates the user's password.

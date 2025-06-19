@@ -1,16 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Tiles.Core.Domain.Entities;
-using Tiles.Core.DTO.ProductDto.CategoryrequestandSubcategoryrequest;
+﻿using Tiles.Core.DTO.Categorys;
 
 namespace Tiles.Core.ServiceContracts
 {
     public interface ICategoryService
     {
-        Task<Category> CreateCategoryAsync(CategoryRequest request);
-        Task<IEnumerable<Category>> GetCategoriesAsync();
+        Task<List<CategoryResponse>> GetAllWithSubcategoriesAsync();
+        Task<CategoryResponse?> GetByIdAsync(Guid id);
+        Task<CategoryResponse> CreateAsync(CreateCategoryRequest request);
+        Task<CategoryResponse?> UpdateAsync(Guid id, UpdateCategoryRequest request);
+        Task<bool> DeleteAsync(Guid id);
     }
 }

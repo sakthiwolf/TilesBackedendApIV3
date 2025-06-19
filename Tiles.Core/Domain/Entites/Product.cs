@@ -1,36 +1,57 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Tiles.Core.Domain.Entities
+using Tiles.Core.Domain.Entites;
+using Tiles.Core.Domain.Entities;
+namespace Tiles.Core.Domain.Entites
 {
     public class Product
     {
         [Key]
-        public Guid Id { get; set; }  // PostgreSQL UUID support
+        public Guid Id { get; set; }
 
-   
-        public Guid Category { get; set; }
+        [Required]
+        public string SerialNumber { get; set; } = null!;
 
-    
-        public Guid SubCategory { get; set; }
+        [Required]
+        public Guid CategoryId { get; set; }
 
-        
-        public string ProductName { get; set; } = string.Empty;
+        [ForeignKey("CategoryId")]
+        public Category Category { get; set; } = null!;
 
-       
-        public string? ProductImage { get; set; }
+        [Required]
+        public Guid SubCategoryId { get; set; }
 
-       
-        public List<string> ProductSizes { get; set; } = new List<string>();
+        [ForeignKey("SubCategoryId")]
+        public Subcategory SubCategory { get; set; } = null!;
 
-        public string? Description { get; set; }
+        [Required]
+        public string ProductName { get; set; } = null!;
 
-        public List<string>? Colors { get; set; } = new List<string>();
+        [Required]
+        public string ProductImage { get; set; } = null!;
 
-   
-        public string? Disclaimer { get; set; }
+        [Required]
+        public List<string> ProductSizes { get; set; } = new();
 
+        [Required]
+        public string Description { get; set; } = null!;
+
+        [Required]
+        public List<string> Colors { get; set; } = new();
+
+        [Required]
+        public string Disclaimer { get; set; } = null!;
+
+        [Required]
         public int Stock { get; set; }
+
+        public string? Link360 { get; set; }
     }
 }

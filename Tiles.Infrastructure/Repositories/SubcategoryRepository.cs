@@ -1,55 +1,67 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Tiles.Core.Domain.Entities;
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Infrastructure.Data;
 
 namespace Tiles.Infrastructure.Repositories
 {
-    /// <summary>
-    /// Repository implementation for managing Subcategory entities.
-    /// </summary>
     public class SubcategoryRepository : ISubcategoryRepository
     {
         private readonly AppDbContext _context;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="SubcategoryRepository"/> class with the specified DbContext.
-        /// </summary>
-        /// <param name="context">The application's database context.</param>
-        public SubcategoryRepository(AppDbContext context) => _context = context;
+        public SubcategoryRepository(AppDbContext context)
+        {
+            _context = context;
+        }
 
-        /// <summary>
-        /// Creates a new Subcategory in the database after validating its Category exists.
-        /// </summary>
-        /// <param name="subcategory">The Subcategory entity to create.</param>
-        /// <returns>The created Subcategory entity.</returns>
-        /// <exception cref="InvalidOperationException">Thrown if the associated Category does not exist.</exception>
         public async Task<Subcategory> CreateAsync(Subcategory subcategory)
         {
-            // Ensure the referenced Category exists before adding the Subcategory
+            // Log the CategoryId being checked (optional, requires ILogger)
+            // _logger.LogInformation($"Checking existence of CategoryId: {subcategory.CategoryId}");
+
             var categoryExists = await _context.Categories.AnyAsync(c => c.Id == subcategory.CategoryId);
             if (!categoryExists)
-                throw new InvalidOperationException($"Category with Id '{subcategory.CategoryId}' does not exist.");
+            {
+                // Optionally, log the error
+                // _logger.LogWarning($"CategoryId {subcategory.CategoryId} does not exist.");
+                throw new InvalidOperationException($"Invalid CategoryId '{subcategory.CategoryId}'. The referenced category does not exist.");
+            }
 
             _context.Subcategories.Add(subcategory);
             await _context.SaveChangesAsync();
             return subcategory;
         }
 
-        /// <summary>
-        /// Retrieves all Subcategories for a given Category ID.
-        /// </summary>
-        /// <param name="categoryId">The ID of the Category to filter Subcategories by.</param>
-        /// <returns>A list of Subcategories belonging to the specified Category.</returns>
-        public async Task<IEnumerable<Subcategory>> GetByCategoryIdAsync(Guid categoryId)
+
+        public async Task<Subcategory?> GetByIdAsync(Guid id)
         {
-            return await _context.Subcategories
-                .Where(s => s.CategoryId == categoryId)
-                .ToListAsync();
+            return await _context.Subcategories.FindAsync(id);
+        }
+
+        public async Task<IEnumerable<Subcategory>> GetAllAsync()
+        {
+            return await _context.Subcategories.ToListAsync();
+        }
+
+        public async Task<Subcategory?> UpdateAsync(Subcategory subcategory)
+        {
+            _context.Subcategories.Update(subcategory);
+            await _context.SaveChangesAsync();
+            return subcategory;
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var sub = await _context.Subcategories.FindAsync(id);
+            if (sub == null) return false;
+            _context.Subcategories.Remove(sub);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public Task<bool> CategoryExistsAsync(Guid categoryId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

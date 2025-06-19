@@ -1,32 +1,26 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-using Tiles.Core.Domain.Entities;
+﻿
+using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Tiles.Core.Domain.Entites;
 using Tiles.Core.Domain.RepositroyContracts;
 using Tiles.Infrastructure.Data;
+using Tiles.Core.Domain.Entities; // Ensure this namespace is included for SubCategory  
 
 namespace Tiles.Infrastructure.Repositories
 {
-    /// <summary>
-    /// Repository implementation for managing Product entities.
-    /// </summary>
     public class ProductRepository : IProductRepository
     {
         private readonly AppDbContext _context;
 
-        /// <summary>
-        /// Initializes a new instance of the <see cref="ProductRepository"/> class with the specified DbContext.
-        /// </summary>
-        /// <param name="context">The application's database context.</param>
         public ProductRepository(AppDbContext context)
         {
             _context = context;
         }
 
-        /// <summary>
-        /// Creates a new product in the database.
-        /// </summary>
-        /// <param name="product">The product entity to create.</param>
-        /// <returns>The created product entity.</returns>
         public async Task<Product> CreateAsync(Product product)
         {
             _context.Products.Add(product);
@@ -34,66 +28,57 @@ namespace Tiles.Infrastructure.Repositories
             return product;
         }
 
-        /// <summary>
-        /// Retrieves a product by its unique identifier.
-        /// </summary>
-        /// <param name="id">The product ID.</param>
-        /// <returns>The product if found; otherwise, null.</returns>
-        public async Task<Product?> GetByIdAsync(Guid id)
+        public async Task<IEnumerable<Product>> GetAllAsync(Guid? categoryId, Guid? subCategoryId, int page, int limit)
         {
-            return await _context.Products.FindAsync(id);
+            var query = _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.SubCategory)
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+                query = query.Where(p => p.CategoryId == categoryId);
+
+            if (subCategoryId.HasValue)
+                query = query.Where(p => p.SubCategoryId == subCategoryId);
+
+            return await query
+                .Skip((page - 1) * limit)
+                .Take(limit)
+                .ToListAsync();
         }
 
-        /// <summary>
-        /// Retrieves all products from the database.
-        /// </summary>
-        /// <returns>A list of all products.</returns>
-        public async Task<IEnumerable<Product>> GetAllAsync()
-        {
-            return await _context.Products.ToListAsync();
-        }
-
-        /// <summary>
-        /// Retrieves products filtered by category and/or subcategory.
-        /// </summary>
-        /// <param name="categoryId">Optional category ID filter.</param>
-        /// <param name="subCategoryId">Optional subcategory ID filter.</param>
-        /// <returns>A list of filtered products.</returns>
-        public async Task<IEnumerable<Product>> GetByFilterAsync(Guid? categoryId, Guid? subCategoryId)
+        public async Task<int> CountAsync(Guid? categoryId, Guid? subCategoryId)
         {
             var query = _context.Products.AsQueryable();
 
             if (categoryId.HasValue)
-                query = query.Where(p => p.Category == categoryId);
+                query = query.Where(p => p.CategoryId == categoryId);
 
             if (subCategoryId.HasValue)
-                query = query.Where(p => p.SubCategory == subCategoryId);
+                query = query.Where(p => p.SubCategoryId == subCategoryId);
 
-            return await query.ToListAsync();
+            return await query.CountAsync();
         }
 
-        /// <summary>
-        /// Updates an existing product in the database.
-        /// </summary>
-        /// <param name="product">The product entity with updated values.</param>
-        /// <returns>The updated product entity.</returns>
-        public async Task<Product> UpdateAsync(Product product)
+        public async Task<Product?> GetByIdAsync(Guid id)
+        {
+            return await _context.Products
+                .Include(p => p.Category)
+                .Include(p => p.SubCategory)
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+        public async Task<Product?> UpdateAsync(Product product)
         {
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
             return product;
         }
 
-        /// <summary>
-        /// Deletes a product by its ID.
-        /// </summary>
-        /// <param name="id">The ID of the product to delete.</param>
-        /// <returns>True if the product was found and deleted; otherwise, false.</returns>
         public async Task<bool> DeleteAsync(Guid id)
         {
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
-                return false;
+            if (product == null) return false;
 
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
